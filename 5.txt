@@ -1,0 +1,33 @@
+The basic algorithm executed by any Web crawler is to take a list of seed URLs as its input.
+And then repeatedly execute the following steps:
+1.Pick a URL from the unvisited URL list.
+2.Determine the IP Address of its host-name.
+3.Establishing a connection to the host to download the corresponding document.
+4.Parse the document contents to look for new URLs.
+5.Add the new URLs to the list of unvisited URLs.
+6.Process the downloaded document, e.g., store it or index its contents, etc.
+7.Go back to step-1.
+
+HOW TO CRAWL:
+Breadth-first search (BFS) is usually used.
+However, Depth First Search (DFS) is also utilized in some situations, like if crawler has already established a connection with the website, it might just DFS all the URLs within this website to save some handshaking overhead.
+
+Each working thread performs all the steps needed to download and process the document in a loop.
+-The first step of this loop is to remove an absolute URL from the shared URL frontier for downloading.
+-An absolute URL begins with a scheme (e.g., “HTTP”), which identifies the network protocol that should be used to download it.
+-We can implement these protocols in a modular way for extensibility, so that later our crawler can support more protocols.
+Based on the URL’s scheme, the worker calls the appropriate protocol module to download the document.
+-After downloading, the document is placed into a Document Input Stream (DIS).
+-Putting documents into DIS will enable other modules to re-read the document multiple times.
+-Once the document has been written to DIS, the worker thread invokes the dedupe test to determine whether this document (associated with a different URL) has been seen before.
+-If so, the document is not processed any further, and the worker thread removes the next URL from the frontier.
+
+Next, our crawler needs to process the downloaded document.
+-Each document can have a different MIME type like HTML page, Image, Video, etc.
+-We can implement these MIME schemes in a modular way so that later our crawler can support more types.
+-Based on MIME type of document, worker invokes the process method of each processing module associated with that MIME type.
+-Furthermore, our HTML processing module will extract all links from the page.
+-Each link is converted into an absolute URL and tested against a user-supplied URL filter to determine if it should be downloaded.
+-If the URL passes the filter, the worker performs the URL-seen test, which checks if the URL has been seen before, namely, if it is in the URL frontier or has already been downloaded.
+-If the URL is new, it is added to the frontier.
+
